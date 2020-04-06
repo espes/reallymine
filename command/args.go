@@ -8,7 +8,7 @@ import (
 	"io/ioutil"
 	"reflect"
 	"encoding/hex"
-
+        "bufio"
 	"github.com/andlabs/reallymine/disk"
 	"github.com/andlabs/reallymine/kek"
 	"github.com/andlabs/reallymine/decryptloop"
@@ -143,6 +143,15 @@ func (argOutImageType) argtype() reflect.Type {
 }
 
 func (argOutImageType) prepare(arg string) (out *argout, err error) {
+	if arg == "-" {
+		f := bufio.NewWriter(os.Stdout)
+		out = new(argout)
+		out.obj = reflect.ValueOf(f)
+		out.deferfunc = func() {
+			f.Flush()
+		}
+		return out, nil
+	}
 	f, err := os.OpenFile(arg, os.O_WRONLY | os.O_CREATE | os.O_EXCL, 0644)
 	if err != nil {
 		return nil, err
